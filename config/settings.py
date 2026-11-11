@@ -142,7 +142,7 @@ EMAIL_PORT         = 587
 EMAIL_USE_TLS      = True
 EMAIL_USE_SSL      = False
 EMAIL_HOST_USER    = 'johan.ramirez.beltran@gmail.com'
-EMAIL_HOST_PASSWORD = 'dbdc ejgg mmzu uggl'
+EMAIL_HOST_PASSWORD = 'dzsn mbpx nxbe escu'
 DEFAULT_FROM_EMAIL = 'Pander Notificaciones <johan.ramirez.beltran@gmail.com>'
 
 # ── DRF ───────────────────────────────────────────────────────

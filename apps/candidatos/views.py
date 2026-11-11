@@ -351,7 +351,6 @@ class DecisionView(APIView):
             if dc.email:
                 nombre  = f"{dc.primer_nombre} {dc.primer_apellido}".strip()
                 vacante = str(post.vacante)[:80]
-                icono   = "✅" if estado_nuevo_desc == "Seleccionado" else "❌"
                 fe_url  = getattr(settings, "FRONTEND_URL", "http://localhost:5173")
 
                 linea_obs = (
@@ -360,7 +359,7 @@ class DecisionView(APIView):
                 )
 
                 send_mail(
-                    subject=f"Pander RRHH — {icono} Decisión sobre tu postulación",
+                    subject=f"Pander RRHH — Decisión sobre tu postulación",
                     message=(
                         f"Hola {nombre},\n\n"
                         f"El equipo de RRHH ha tomado una decisión sobre tu postulación.\n\n"
