@@ -1,18 +1,3 @@
-"""
-apps/evaluacion/views.py
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Todos los modelos se importan desde .models (archivo unificado).
-No hay imports desde models_vistas_sql ni archivos separados.
-
-Cambios clave:
-  - HabilidadList/Detail: filtra por compania
-  - PreguntaList/Detail: filtra por compania → habilidad (sin evaluacion_id)
-  - RespuestaList/Detail: filtra por compania → pregunta
-  - EvaluacionDetail.put: preserva usuario_creacion del objeto
-  - EvaluacionVacanteList/Detail: regla 1 activa por (compania, vacante),
-    valida que la compañía esté en modo ind_evaluacion_vacante=TRUE
-  - VHabilidadListView: filtra por compania_id en la vista SQL
-"""
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework.response import Response

@@ -1,24 +1,3 @@
-"""
-evaluacion/cat_engine.py — v9 corregido
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-BUG CORREGIDO en _banco():
-  La versión anterior filtraba:
-    Pregunta.objects.filter(compania_id=..., evaluacion_id=...)
-  pero el modelo Pregunta NO tiene esos campos (se eliminaron).
-  La relación compañía → pregunta es INDIRECTA:
-    pregunta → habilidad → habilidad.compania
-
-  Filtro correcto:
-    Pregunta.objects.filter(
-        habilidad__compania_id=self.compania_id,  ← lookup indirecto
-        habilidad_id=self.habilidad_id,
-        ind_activa=True,
-    )
-
-  El fallback a banco legacy (habilidad.compania IS NULL) se mantiene
-  para compatibilidad con datos anteriores a la migración multitenant.
-"""
-
 import math
 import random
 from typing import Optional
@@ -30,11 +9,6 @@ from .models import (
     EstadoIntento, HistorialHabilidadEstim,
     Intento, Pregunta, Respuesta, RespuestaCandidato,
 )
-
-
-# ─────────────────────────────────────────────────────────────
-# TRI 3PL — funciones puras
-# ─────────────────────────────────────────────────────────────
 
 def probabilidad_correcta(theta: float, a: float, b: float, c: float) -> float:
     exp_val = max(-500.0, min(500.0, -1.7 * a * (theta - b)))
@@ -141,21 +115,6 @@ class MotorCAT:
         self.evaluacion_id = self.intento.evaluacion_id
 
     def _banco(self) -> list:
-        """
-        Banco de ítems para (compania, habilidad).
-
-        Pregunta NO tiene campo compania ni evaluacion directos.
-        La compañía se accede INDIRECTAMENTE:
-            pregunta → habilidad → habilidad.compania
-
-        Flujo:
-          1. Busca preguntas de la habilidad cuya compañía coincide
-             (habilidad__compania_id = self.compania_id).
-          2. Si no hay → fallback a habilidades de la compañía 0000
-             (banco legado pre-migración multitenant).
-          3. Si tampoco → lista vacía → el motor termina la habilidad.
-        """
-        # Primero: ítems de la habilidad perteneciente a esta compañía
         qs = list(
             Pregunta.objects.filter(
                 habilidad_id=self.habilidad_id,

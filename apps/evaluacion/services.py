@@ -1,10 +1,3 @@
-"""
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-evaluacion/services.py
-CAPA DE IMPLEMENTACIÓN — Notificación y gestión de tokens
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-"""
- 
 import secrets
 import uuid
 from datetime import timedelta

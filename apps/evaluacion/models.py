@@ -1,31 +1,3 @@
-"""
-apps/evaluacion/models.py
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Modelos de tablas reales + vistas SQL en un único archivo,
-siguiendo el patrón del proyecto (empresa/models.py, acceso/models.py).
-
-ESTRUCTURA FINAL (sin campo evaluacion en banco de ítems):
-  ── BANCO DE ÍTEMS ───────────────────────────────────────
-  Habilidad          → + compania (FK, pertenece a una compañía)
-  Pregunta           → habilidad (sin campo evaluacion directo)
-  Respuesta          → pregunta  (sin campo evaluacion directo)
-  ControlUso         → pregunta  (sin campo evaluacion directo)
-     La relación evaluacion es implícita:
-     pregunta → habilidad → evaluacion_habilidad → evaluacion
-
-  ── EVALUACIONES ─────────────────────────────────────────
-  Evaluacion          → compania (1 activa por compañía, modo estándar)
-  EvaluacionHabilidad → pivote N:M Evaluacion × Habilidad
-  EvaluacionVacante   → asigna evaluacion a vacante específica
-                         (solo si compania.ind_evaluacion_vacante = TRUE)
-                         (solo 1 activa por (compania, vacante))
-
-  ── PROCESO CANDIDATO ────────────────────────────────────
-  EstadoIntento, Intento, RespuestaCandidato, HistorialHabilidadEstim
-
-  ── VISTAS SQL (managed=False) ───────────────────────────
-  VHabilidad, VPregunta, VEvaluacion, VIntento, VReportePostulacion
-"""
 from django.db import models
 
 
@@ -34,19 +6,6 @@ from django.db import models
 # ══════════════════════════════════════════════════════════════
 
 class Habilidad(models.Model):
-    """
-    Habilidad blanda evaluable.
-    Pertenece a una compañía específica (compania FK).
-    La compañía 0000 tiene el banco estándar que se copia
-    automáticamente a las demás compañías al crearlas.
-
-    Parámetros TRI a nivel de habilidad (valores poblacionales base).
-    Los parámetros definitivos calibrados por ítem se almacenan en Pregunta.
-
-    Nulos:
-      compania         → NULL  solo en banco legado pre-multitenant
-      usuario_creacion → NULL  proceso de calibración automática
-    """
     compania = models.ForeignKey(
         "empresa.Compania",
         on_delete=models.CASCADE,

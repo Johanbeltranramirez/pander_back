@@ -1,19 +1,3 @@
-"""
-MÓDULO: candidatos
-MOTOR:  Microsoft SQL Server  (paquete: mssql-django)
-TABLAS: tipo_documento, candidato, datos_candidato, anexo_candidato,
-        estado_postulacion, postulacion, postulacion_token
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-POLÍTICA DE NULOS — campos de auditoría
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  fecha_creacion        NOT NULL   auto_now_add, siempre presente
-  usuario_creacion      NOT NULL   si hay analista que registra
-                        NULL       si el candidato se autoregistra vía token
-  fecha_modificacion    NULL       None hasta la primera edición
-  usuario_modificacion  NULL       None hasta la primera edición
-"""
-
 from django.db import models
 
 

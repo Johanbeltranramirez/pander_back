@@ -1,27 +1,3 @@
-"""
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-PROYECTO PANDER — Configuración SQL Server + Migraciones
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
- 
-ESTRUCTURA DE APPS:
-  pander/
-  ├── manage.py
-  ├── pander/
-  │   ├── settings.py
-  │   └── urls.py
-  ├── empresa/        models.py  → compania, unidad_org
-  ├── acceso/         models.py  → rol, modulo, rol_modulo, analista, usuario
-  ├── vacantes/       models.py  → estado_vacante, tipo_contrato, vacante
-  ├── candidatos/     models.py  → tipo_documento, candidato, datos_candidato,
-  │                                 anexo_candidato, estado_postulacion,
-  │                                 postulacion, postulacion_token
-  └── evaluacion/     models.py  → habilidad, pregunta, respuesta, control_uso,
-                                    evaluacion, evaluacion_habilidad,
-                                    evaluacion_vacante, estado_intento,
-                                    intento, respuesta_candidato,
-                                    historial_habilidad_estim
-"""
-
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.

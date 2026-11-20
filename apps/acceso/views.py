@@ -1,12 +1,3 @@
-"""
-apps/acceso/views.py — v7
-Validaciones de login:
-  1. ind_activo=False  → acceso denegado permanente
-  2. ind_bloqueo=True  → acceso denegado 15 min desde fecha_bloqueo
-                         (después de 15 min se desbloquea automáticamente)
-  3. compania.ind_activa=False → acceso denegado (compañía suspendida)
-  4. ind_evaluacion_vacante    → solo informativo en la sesión
-"""
 import hashlib, secrets, string
 from datetime import timedelta
 

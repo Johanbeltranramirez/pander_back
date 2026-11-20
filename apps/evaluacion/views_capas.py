@@ -1,21 +1,3 @@
-"""
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-evaluacion/views_capas.py
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
- 
-CAPA 1: CONFIGURACIÓN
-  - Sólo accesible para usuarios con permiso al módulo de evaluación
-  - Gestiona habilidades, preguntas, evaluaciones y sus asignaciones
- 
-CAPA 2: IMPLEMENTACIÓN
-  - Al postular: asigna evaluación + genera token + envía notificación
-  - Consulta del reporte de postulaciones
- 
-CAPA 3: RESPUESTA DEL CANDIDATO
-  - Acceso exclusivo vía enlace con token válido
-  - Presenta preguntas, recibe respuestas, calcula θ en tiempo real
-"""
- 
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.response import Response

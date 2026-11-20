@@ -1,13 +1,3 @@
-"""
-apps/evaluacion/serializers.py
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Todos los modelos (tablas + vistas SQL) se importan desde .models
-en un único import, siguiendo el patrón unificado del proyecto.
-
-EvaluacionSerializer:
-  usuario_creacion → required=False, default=1
-  Nunca falla en PUT (el view preserva el valor original del objeto).
-"""
 from rest_framework import serializers
 from .models import (
     # Tablas reales

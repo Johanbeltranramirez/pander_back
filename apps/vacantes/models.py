@@ -1,9 +1,3 @@
-"""
-MÓDULO: vacantes
-TABLAS: estado_vacante, tipo_contrato, vacante
-VISTAS: v_vacante
-"""
-
 from django.db import models
 
 

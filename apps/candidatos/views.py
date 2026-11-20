@@ -1,9 +1,3 @@
-"""
-apps/candidatos/views.py
-FIX PRINCIPAL: from apps.evaluacion.models → from apps.evaluacion.models
-              usuario_modificacion en todos los PUT
-              Emails: cambio estado + resultado evaluación
-"""
 import os, uuid, secrets
 from datetime import timedelta
 from django.shortcuts import get_object_or_404

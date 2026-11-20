@@ -1,15 +1,4 @@
-"""
-MÓDULO: empresa
-TABLAS: compania, unidad_org, compania_eliminada
-VISTAS: v_compania, v_unidad_org
-"""
-
 from django.db import models
-
-
-# ══════════════════════════════════════════════════════════════
-# TABLAS BASE (lectura + escritura)
-# ══════════════════════════════════════════════════════════════
 
 class Compania(models.Model):
     descripcion            = models.CharField(max_length=255)

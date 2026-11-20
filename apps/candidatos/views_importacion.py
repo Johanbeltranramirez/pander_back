@@ -1,11 +1,3 @@
-"""
-apps/candidatos/views_importacion.py
-Importación masiva desde Excel con:
-  - Validación completa antes de importar (si hay errores → no importa nada)
-  - Log de validación por fila con descripción del error
-  - Relaciones por nombre/tipo+número de documento (no por ID)
-  - Envío automático de emails al importar postulaciones (via trigger)
-"""
 import io
 import hashlib
 import secrets

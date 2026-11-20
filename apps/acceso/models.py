@@ -1,37 +1,3 @@
-"""
-MÓDULO: acceso
-MOTOR:  Microsoft SQL Server  (paquete: mssql-django)
-TABLAS: rol, modulo, rol_modulo, analista, usuario
-
-Mapeo de tipos Django → SQL Server:
-  CharField(max_length=n)  →  nvarchar(n)
-  TextField                →  nvarchar(max)
-  BooleanField             →  bit
-  IntegerField             →  int
-  BigIntegerField          →  bigint
-  FloatField               →  float(53)
-  DecimalField(p,s)        →  decimal(p,s)
-  DateTimeField            →  datetime2      ← mayor precisión que datetime
-  AutoField                →  int IDENTITY(1,1)
-  EmailField               →  nvarchar(254)
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-POLÍTICA DE NULOS — campos de auditoría
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  fecha_creacion        NOT NULL   auto_now_add=True, siempre presente
-  usuario_creacion      NOT NULL   quién creó el registro (humano)
-                        NULL       proceso automático / autoregistro candidato
-  fecha_modificacion    NULL       None hasta la primera edición  (auto_now)
-  usuario_modificacion  NULL       None hasta la primera edición
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-POLÍTICA DE NULOS — otros campos
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  Se documenta campo a campo en cada modelo.
-  Criterio general: nullable solo cuando el dato es genuinamente
-  opcional o lo genera un proceso, no como atajos de implementación.
-"""
-
 from django.db import models
 
 

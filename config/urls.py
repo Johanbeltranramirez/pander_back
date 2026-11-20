@@ -1,11 +1,3 @@
-"""
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-pander/urls.py  —  Router raíz del proyecto
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Todos los endpoints del backend viven bajo el prefijo /api/
-Cada app expone su propio urls.py que se incluye aquí.
-"""
- 
 from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings

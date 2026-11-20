@@ -1,16 +1,3 @@
-"""
-apps/empresa/views.py — v12
-Nueva funcionalidad:
-  CompaniaDetail.delete():
-    - Bloquea eliminación de la compañía nit='0000' (sistema)
-    - Cuenta los registros relacionados antes de eliminar
-    - Registra un snapshot en CompaniaEliminada (auditoría)
-    - Ejecuta la eliminación en cascada con db.transaction.atomic
-    - Devuelve un resumen del impacto
-
-  CompaniaEliminadaList:
-    - GET /api/empresa/companias/eliminadas/  → historial de auditoría
-"""
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
