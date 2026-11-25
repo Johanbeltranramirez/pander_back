@@ -75,19 +75,6 @@ DATABASES = {
     #    'ENGINE': 'django.db.backends.sqlite3',
     #    'NAME': BASE_DIR / 'db.sqlite3'
     #}
-    
-    ## SQL Server
-    #'default': {
-    #    'ENGINE': 'mssql',
-    #    'NAME': 'pander_db',
-    #    'HOST': 'JOHANPORTA01\SQLEXPRESS',
-    #    'PORT': '',
-    #    'OPTIONS': {
-    #        'driver': 'ODBC Driver 18 for SQL Server',
-    #        'trusted_connection': 'yes',
-    #        'extra_params': 'TrustServerCertificate=yes'
-    #    }
-    #}
 
     ## PostgreSQL
     'default': {
