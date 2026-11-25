@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: pander
+spec:
+  # Sin "replicas": las controla el HPA (1 a 2 pods)
+  selector:
+    matchLabels:
+      app: backend
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      imagePullSecrets:
+        - name: ghcr-pull      # opcional (solo si GHCR es privado)
+      securityContext:
+        fsGroup: 1000          # appuser (uid 1000) puede escribir en el volumen de media
+      containers:
+        - name: backend
+          image: ghcr.io/johanbeltranramirez/pander-back:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - configMapRef: { name: pander-config }
+            - secretRef:    { name: pander-secrets }
+          # Django rechaza peticiones cuyo Host no esté en ALLOWED_HOSTS; las probes llegan con la IP
+          # del pod, por eso se les fuerza el header Host.
+          startupProbe:
+            httpGet:
+              path: /api/health/
+              port: 8000
+              httpHeaders: [{ name: Host, value: pander.duckdns.org }]
+            periodSeconds: 10
+            failureThreshold: 30          # hasta 5 minutos (torch tarda en cargar)
+          readinessProbe:
+            httpGet:
+              path: /api/health/?db=1
+              port: 8000
+              httpHeaders: [{ name: Host, value: pander.duckdns.org }]
+            periodSeconds: 10
+            timeoutSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /api/health/
+              port: 8000
+              httpHeaders: [{ name: Host, value: pander.duckdns.org }]
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3
+          resources:
+            requests: { cpu: 500m, memory: 1Gi }
+            limits:   { cpu: "2",  memory: 3Gi }
+          volumeMounts:
+            - name: media
+              mountPath: /app/media
+      volumes:
+        - name: media
+          persistentVolumeClaim:
+            claimName: pander-media
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+  namespace: pander
+spec:
+  selector:
+    app: backend
+  ports:
+    - port: 8000
+      targetPort: 8000

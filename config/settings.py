@@ -5,16 +5,43 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
+# ── Configuración por variables de entorno ────────────────────
+# En local se pueden poner en un archivo .env (ver .env.example).
+# En Kubernetes llegan desde el ConfigMap y el Secret.
+def _cargar_dotenv(ruta):
+    # Lector mínimo de .env (así no hace falta instalar otra librería)
+    if not ruta.exists():
+        return
+    for linea in ruta.read_text(encoding='utf-8').splitlines():
+        linea = linea.strip()
+        if not linea or linea.startswith('#') or '=' not in linea:
+            continue
+        clave, valor = linea.split('=', 1)
+        os.environ.setdefault(clave.strip(), valor.strip().strip('"').strip("'"))
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-1ac%t3mp=d43@w5z_jbu(x%!drjg1x(ykqz()mf!6712we@_mg'
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+_cargar_dotenv(BASE_DIR / '.env')
 
-ALLOWED_HOSTS = []
+
+def _bool(nombre, defecto=False):
+    return os.environ.get(nombre, str(defecto)).strip().lower() in ('1', 'true', 'yes', 'si', 'on')
+
+
+def _lista(nombre, defecto=''):
+    return [x.strip() for x in os.environ.get(nombre, defecto).split(',') if x.strip()]
+
+
+# SECURITY WARNING: la clave y el modo debug ya NO van en el código.
+DEBUG = _bool('DJANGO_DEBUG', False)
+
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', '')
+if not SECRET_KEY:
+    if DEBUG:
+        SECRET_KEY = 'django-insecure-solo-para-desarrollo-local'
+    else:
+        raise RuntimeError('Falta la variable de entorno DJANGO_SECRET_KEY')
+
+ALLOWED_HOSTS = _lista('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1' if DEBUG else '')
 
 
 # Application definition
@@ -38,6 +65,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',   # sirve /static (CSS del admin) desde gunicorn
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -70,57 +98,40 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 DATABASES = {
-    
-    ## SQLite
-    #'default': {
-    #    'ENGINE': 'django.db.backends.sqlite3',
-    #    'NAME': BASE_DIR / 'db.sqlite3'
-    #}
-    
-    ## SQL Server
-    #'default': {
-    #    'ENGINE': 'mssql',
-    #    'NAME': 'pander_db',
-    #    'HOST': 'JOHANPORTA01\SQLEXPRESS',
-    #    'PORT': '',
-    #    'OPTIONS': {
-    #        'driver': 'ODBC Driver 18 for SQL Server',
-    #        'trusted_connection': 'yes',
-    #        'extra_params': 'TrustServerCertificate=yes'
-    #    }
-    #}
-
-    ## PostgreSQL
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'pander_db',
-        'USER': 'postgres',
-        'PASSWORD': 'Admin1234*',
-        'HOST': 'localhost',
-        'PORT': '5433',
+        'NAME': os.environ.get('DB_NAME', 'pander_db'),
+        'USER': os.environ.get('DB_USER', 'postgres'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', ''),
+        'HOST': os.environ.get('DB_HOST', 'localhost'),
+        'PORT': os.environ.get('DB_PORT', '5432'),
+        'CONN_MAX_AGE': int(os.environ.get('DB_CONN_MAX_AGE', 60)),
     }
-    
 }
 
 # ── URL base del frontend (para generar enlaces de evaluación) ─
-FRONTEND_URL = 'http://localhost:5173'
+FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:5173').rstrip('/')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # ── Archivos subidos (CV candidatos) ──────────────────────────
 MEDIA_URL  = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_ROOT = Path(os.environ.get('MEDIA_ROOT', BASE_DIR / 'media'))
 
-# ── CORS ──────────────────────────────────────────────────────
-CORS_ALLOW_ALL_ORIGINS = True   # Solo desarrollo. En producción usar CORS_ALLOWED_ORIGINS
+# ── CORS / CSRF ───────────────────────────────────────────────
+# En producción el frontend y la API comparten dominio (el Ingress enruta /api),
+# pero dejamos la lista por si se usa otro origen.
+CORS_ALLOWED_ORIGINS = _lista('CORS_ALLOWED_ORIGINS', 'http://localhost:5173,http://127.0.0.1:5173')
+CSRF_TRUSTED_ORIGINS = _lista('CSRF_TRUSTED_ORIGINS')
 
-EMAIL_BACKEND      = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST         = 'smtp.gmail.com'
-EMAIL_PORT         = 587
-EMAIL_USE_TLS      = True
-EMAIL_USE_SSL      = False
-EMAIL_HOST_USER    = 'johan.ramirez.beltran@gmail.com'
-EMAIL_HOST_PASSWORD = 'dzsn mbpx nxbe escu'
-DEFAULT_FROM_EMAIL = 'Pander Notificaciones <johan.ramirez.beltran@gmail.com>'
+# ── Correo (SMTP) ─────────────────────────────────────────────
+EMAIL_BACKEND      = os.environ.get('EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
+EMAIL_HOST         = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT         = int(os.environ.get('EMAIL_PORT', 587))
+EMAIL_USE_TLS      = _bool('EMAIL_USE_TLS', True)
+EMAIL_USE_SSL      = _bool('EMAIL_USE_SSL', False)
+EMAIL_HOST_USER    = os.environ.get('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'Pander Notificaciones <no-reply@pander.local>')
 
 # ── DRF ───────────────────────────────────────────────────────
 REST_FRAMEWORK = {
@@ -169,6 +180,17 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'   # aquí deja collectstatic los archivos del admin
+
+# ── Seguridad cuando corre detrás del Ingress (HTTPS lo termina Traefik) ──
+if not DEBUG:
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    USE_X_FORWARDED_HOST = True
+    SECURE_SSL_REDIRECT = _bool('DJANGO_SSL_REDIRECT', True)
+    SECURE_REDIRECT_EXEMPT = [r'^api/health/$']   # las probes de K8s llegan por HTTP
+    SESSION_COOKIE_SECURE = SECURE_SSL_REDIRECT
+    CSRF_COOKIE_SECURE = SECURE_SSL_REDIRECT
+    SECURE_HSTS_SECONDS = int(os.environ.get('DJANGO_HSTS_SECONDS', 0))
 
 
 # ── Importación de hojas de vida con IA (modelo BiLSTM-CRF) ───

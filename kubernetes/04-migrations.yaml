@@ -1,0 +1,24 @@
+# Job que aplica las migraciones de Django. El workflow lo borra y lo vuelve a crear en cada despliegue.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: pander-migrate
+  namespace: pander
+spec:
+  backoffLimit: 6              # reintenta si Postgres aún está arrancando
+  ttlSecondsAfterFinished: 3600
+  template:
+    spec:
+      restartPolicy: OnFailure
+      imagePullSecrets:
+        - name: ghcr-pull      # opcional: solo se usa si las imágenes en GHCR son privadas
+      containers:
+        - name: migrate
+          image: ghcr.io/johanbeltranramirez/pander-back:latest
+          command: ["python", "manage.py", "migrate", "--noinput"]
+          envFrom:
+            - configMapRef: { name: pander-config }
+            - secretRef:    { name: pander-secrets }
+          resources:
+            requests: { cpu: 100m, memory: 256Mi }
+            limits:   { cpu: "1",  memory: 1Gi }

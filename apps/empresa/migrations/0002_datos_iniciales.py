@@ -9,6 +9,7 @@ CAMBIOS respecto a la versión anterior:
 from django.db import migrations
 from django.utils import timezone
 import hashlib
+import os
 
 
 def hash_pwd(raw: str) -> str:
@@ -69,7 +70,10 @@ def insertar_datos_iniciales(apps, schema_editor):
     usuario = Usuario.objects.create(
         compania=compania, id_interno=1,
         analista=analista, rol=rol_manager,
-        login="admin", pwd=hash_pwd("Admin1234*"),
+        login="admin",
+        # En producción la contraseña inicial llega por la variable PANDER_ADMIN_PASSWORD
+        # (Secret de Kubernetes). Si no existe, queda la de desarrollo.
+        pwd=hash_pwd(os.environ.get("PANDER_ADMIN_PASSWORD", "Admin1234*")),
         email="johan.ramirez.beltran@gmail.com",
         ind_super_usuario=True, ind_activo=True, ind_bloqueo=False,
         usuario_creacion=1, fecha_creacion=now,

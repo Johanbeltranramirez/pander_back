@@ -1,0 +1,68 @@
+# Entrada al clúster (Traefik). Rutas:
+#   /api, /admin, /static -> backend      |      todo lo demás (y /media) -> frontend (NGINX)
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: redirect-https
+  namespace: pander
+spec:
+  redirectScheme:
+    scheme: https
+    permanent: true
+---
+# HTTP (80): solo redirige a HTTPS. Los desafíos de Let's Encrypt (/.well-known/acme-challenge)
+# los atiende un Ingress temporal que crea cert-manager, con una ruta más específica.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: pander-http
+  namespace: pander
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: web
+    traefik.ingress.kubernetes.io/router.middlewares: pander-redirect-https@kubernetescrd
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: pander.duckdns.org
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service: { name: frontend, port: { number: 80 } }
+---
+# HTTPS (443) con certificado de Let's Encrypt
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: pander
+  namespace: pander
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts: ["pander.duckdns.org"]
+      secretName: pander-tls
+  rules:
+    - host: pander.duckdns.org
+      http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service: { name: backend, port: { number: 8000 } }
+          - path: /admin
+            pathType: Prefix
+            backend:
+              service: { name: backend, port: { number: 8000 } }
+          - path: /static
+            pathType: Prefix
+            backend:
+              service: { name: backend, port: { number: 8000 } }
+          - path: /
+            pathType: Prefix
+            backend:
+              service: { name: frontend, port: { number: 80 } }

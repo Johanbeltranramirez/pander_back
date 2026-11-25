@@ -1,0 +1,17 @@
+# OPCIONAL, se aplica una sola vez. Traefik corta por defecto las peticiones que tardan mucho en
+# llegar/responder (~60 s). La importación masiva de CV sube muchos archivos y el modelo tarda,
+# así que se amplían los tiempos. K3s reinicia Traefik solo al aplicar este archivo.
+apiVersion: helm.cattle.io/v1
+kind: HelmChartConfig
+metadata:
+  name: traefik
+  namespace: kube-system
+spec:
+  valuesContent: |-
+    additionalArguments:
+      - "--entryPoints.web.transport.respondingTimeouts.readTimeout=600s"
+      - "--entryPoints.web.transport.respondingTimeouts.writeTimeout=600s"
+      - "--entryPoints.web.transport.respondingTimeouts.idleTimeout=600s"
+      - "--entryPoints.websecure.transport.respondingTimeouts.readTimeout=600s"
+      - "--entryPoints.websecure.transport.respondingTimeouts.writeTimeout=600s"
+      - "--entryPoints.websecure.transport.respondingTimeouts.idleTimeout=600s"

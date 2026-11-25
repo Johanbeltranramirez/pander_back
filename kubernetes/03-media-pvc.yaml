@@ -1,0 +1,14 @@
+# Disco compartido para los archivos subidos (CV y anexos).
+# El backend escribe en /app/media y NGINX (frontend) los lee en /usr/share/nginx/media.
+# Es ReadWriteOnce, pero sirve para varios pods porque todo corre en el mismo nodo.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pander-media
+  namespace: pander
+spec:
+  accessModes: ["ReadWriteOnce"]
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 5Gi
