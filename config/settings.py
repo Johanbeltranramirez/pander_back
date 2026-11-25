@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -74,6 +75,19 @@ DATABASES = {
     #'default': {
     #    'ENGINE': 'django.db.backends.sqlite3',
     #    'NAME': BASE_DIR / 'db.sqlite3'
+    #}
+    
+    ## SQL Server
+    #'default': {
+    #    'ENGINE': 'mssql',
+    #    'NAME': 'pander_db',
+    #    'HOST': 'JOHANPORTA01\SQLEXPRESS',
+    #    'PORT': '',
+    #    'OPTIONS': {
+    #        'driver': 'ODBC Driver 18 for SQL Server',
+    #        'trusted_connection': 'yes',
+    #        'extra_params': 'TrustServerCertificate=yes'
+    #    }
     #}
 
     ## PostgreSQL
@@ -155,3 +169,14 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+
+
+# ── Importación de hojas de vida con IA (modelo BiLSTM-CRF) ───
+# Ruta del checkpoint entrenado (puede sobrescribirse con la variable de entorno CV_MODEL_PATH).
+CV_MODEL_PATH = Path(os.environ.get(
+    "CV_MODEL_PATH", BASE_DIR / "apps" / "candidatos" / "ia" / "modelo" / "modelo.pt"))
+CV_DEVICE         = os.environ.get("CV_DEVICE") or None        # "cpu" | "cuda" | None (automático)
+CV_MAX_ARCHIVOS   = int(os.environ.get("CV_MAX_ARCHIVOS", 50))  # archivos por solicitud
+CV_MAX_BYTES      = int(os.environ.get("CV_MAX_BYTES", 10 * 1024 * 1024))  # por archivo
+CV_MAX_PAGINAS    = int(os.environ.get("CV_MAX_PAGINAS", 10))   # páginas leídas por PDF
+CV_CACHE_SEGUNDOS = int(os.environ.get("CV_CACHE_SEGUNDOS", 3600))  # caché de extracciones

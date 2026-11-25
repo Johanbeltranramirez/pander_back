@@ -7,10 +7,13 @@ from datetime import timedelta
 from django.utils import timezone
 from django.conf import settings
 from django.core.mail import send_mail
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import transaction
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser
+
+from apps.candidatos.ia.mapeo import validar_email
 
 try:
     import openpyxl
@@ -372,8 +375,13 @@ class ImportarVacantesView(APIView):
 # ════════════════════════════════════════════════════════════
 
 class ImportarCandidatosView(APIView):
+    """
+    Importación de candidatos desde la matriz de Excel.
+    Obligatorios: primer_nombre, primer_apellido y **email** (formato válido).
+    (La carga desde hojas de vida con IA está en views_importacion_cv.py.)
+    """
     parser_classes = [MultiPartParser]
-    COLUMNAS_REQUERIDAS = ["primer_nombre", "primer_apellido"]
+    COLUMNAS_REQUERIDAS = ["primer_nombre", "primer_apellido", "email"]
 
     def post(self, request, compania):
         return _procesar_importacion(
@@ -388,6 +396,10 @@ class ImportarCandidatosView(APIView):
             f = r["_fila"]
             if not r.get("primer_nombre") or not r.get("primer_apellido"):
                 log.append(_err(f, "primer_nombre y primer_apellido son obligatorios")); continue
+            if not r.get("email"):
+                log.append(_err(f, "email es obligatorio")); continue
+            if validar_email(r["email"]) is None:
+                log.append(_err(f, f"email '{r['email']}' no tiene un formato válido")); continue
             if r.get("tipo_documento") and r["tipo_documento"].upper() not in tipos:
                 log.append(_err(f, f"tipo_documento '{r['tipo_documento']}' no existe")); continue
             log.append(_ok(f, f"Candidato '{r['primer_nombre']} {r['primer_apellido']}' listo"))
@@ -416,7 +428,7 @@ class ImportarCandidatosView(APIView):
                 segundo_nombre   = r.get("segundo_nombre") or None,
                 primer_apellido  = r["primer_apellido"],
                 segundo_apellido = r.get("segundo_apellido") or None,
-                email            = r.get("email") or None,
+                email            = validar_email(r["email"]),
                 telefono         = r.get("telefono") or None,
                 usuario_creacion = usuario_id,
             )
@@ -591,6 +603,26 @@ def _comp(compania_id):
     return Compania.objects.get(id=compania_id)
 
 
+def _existe_compania(compania_id) -> bool:
+    """True si la compañía existe. Tolera ids con formato inválido (p. ej. texto en una PK numérica)."""
+    from apps.empresa.models import Compania
+    try:
+        return Compania.objects.filter(id=compania_id).exists()
+    except (ValueError, TypeError, DjangoValidationError):
+        return False
+
+
+def normalizar_usuario_id(valor, defecto=1):
+    """
+    Id del usuario que importa. Numérico -> int (PK entera); cualquier otro texto se conserva
+    tal cual (p. ej. un UUID); vacío/None -> `defecto`.
+    """
+    if valor is None or str(valor).strip() == "":
+        return defecto
+    texto = str(valor).strip()
+    return int(texto) if texto.isdigit() else texto
+
+
 def _procesar_importacion(request, cols_req, validar_fn, importar_fn, compania_id=None):
     """
     Flujo estándar de importación:
@@ -606,11 +638,10 @@ def _procesar_importacion(request, cols_req, validar_fn, importar_fn, compania_i
         return Response({"error": "Se requiere el archivo Excel (campo 'archivo')."}, status=400)
 
     dry_run  = str(request.data.get("dry_run", "false")).lower() == "true"
-    uid      = request.data.get("usuario_id", 1)
-    try:
-        uid = int(uid)
-    except (ValueError, TypeError):
-        uid = 1
+    uid      = normalizar_usuario_id(request.data.get("usuario_id", 1))
+
+    if compania_id is not None and not _existe_compania(compania_id):
+        return Response({"error": "La compañía indicada no existe."}, status=404)
 
     try:
         rows = _leer_excel(archivo)
